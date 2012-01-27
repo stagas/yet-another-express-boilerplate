@@ -1,16 +1,12 @@
 /*
- * Yaeb 0.1.0
+ * Yaeb 0.1.1
  */
-
-// Info
-
-var name = 'Yaeb';
-var version = '0.1.0';
 
 // Dependencies
 
 var path = require('path');
 var express = require('express');
+require('express-prettylogger');
 
 // Create server
 
@@ -24,8 +20,6 @@ exports = module.exports = app;
 
 var settings = app.settings;
 app.configure(function () {
-  app.set('name', name);
-  app.set('version', version);
   app.set('view engine', 'jade');
   app.set('views', path.join(__dirname, '..', 'views'));
   app.set('secret', 'your secret');
@@ -33,15 +27,18 @@ app.configure(function () {
 
 // Middleware
 
-app.configure('production', function () {
-  app.use(express.logger());
-});
-
-app.configure('development', function () {
-  app.use(express.logger('dev'));
-});
-
 app.configure(function () {
+  app.use(function (req, res, next) {
+    express.errorHandler.title = app.settings.name;
+    req.connection.remoteAddress
+    = req.headers['ip']
+    = req.headers['ip']
+      || req.headers['x-ip']
+      || req.headers['x-real-ip']
+      || req.connection.remoteAddress;
+    next();
+  });
+  app.use(express.logger('pretty'));
   app.use(express.methodOverride());
   app.use(express.cookieParser(app.settings.secret));
   app.use(express.session({ secret: app.settings.secret }));
@@ -55,7 +52,6 @@ app.configure(function () {
 });
 
 app.configure('development', function () {
-  express.errorHandler.title = app.settings.name;
   app.use(express.errorHandler({
     'stack': true
   , 'dump': true
@@ -72,7 +68,6 @@ app.configure('production', function () {
 
 // Locals
 
-app.locals(app.settings);
 app.locals({
   title: undefined
 });
